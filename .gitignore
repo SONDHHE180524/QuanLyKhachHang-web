@@ -1,0 +1,17 @@
+# .NET / Visual Studio Build Folders
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+**/*.suo
+**/*.userosscache
+**/*.sln.docstates
+
+# Angular Build & Package Folders
+**/node_modules/
+**/.angular/
+**/dist/
+
+# System Files
+.DS_Store
+Thumbs.db
