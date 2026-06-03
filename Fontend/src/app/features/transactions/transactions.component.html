@@ -1,0 +1,280 @@
+<div class="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Quản lý giao dịch</h1>
+      <p class="text-slate-500 mt-1">Theo dõi doanh thu, chi phí và lịch sử giao dịch tại cửa hàng.</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div *ngIf="activeTab === 'revenue'" class="flex items-center gap-3">
+        <button (click)="exportRevenueExcel()" 
+          class="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all">
+          <lucide-icon name="file-spreadsheet" [size]="18"></lucide-icon>
+          Xuất Excel
+        </button>
+        <button (click)="showSaleModal = true" 
+          class="flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-primary-500/30 transition-all">
+          <lucide-icon name="plus" [size]="18"></lucide-icon>
+          Tạo giao dịch mới
+        </button>
+      </div>
+
+      <div *ngIf="activeTab === 'expense'" class="flex items-center gap-3">
+        <button (click)="exportExpenseExcel()" 
+          class="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all">
+          <lucide-icon name="file-spreadsheet" [size]="18"></lucide-icon>
+          Xuất Excel
+        </button>
+        <button (click)="showExpenseModal = true" 
+          class="flex items-center gap-2 px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold shadow-lg shadow-rose-500/30 transition-all">
+          <lucide-icon name="plus" [size]="18"></lucide-icon>
+          Tạo phiếu chi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Liệu trình -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+      <div class="relative flex items-center gap-4">
+        <div class="p-3 bg-primary-100 text-primary-600 rounded-2xl">
+          <lucide-icon [name]="'activity'" class="w-6 h-6"></lucide-icon>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng tiền liệu trình</p>
+          <div class="flex items-baseline gap-1 mt-1">
+            <p class="text-2xl font-bold text-slate-900">{{ totalServiceAmount | number:'1.0-0' }}</p>
+            <span class="text-sm font-bold text-slate-400">đ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sản phẩm -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+      <div class="relative flex items-center gap-4">
+        <div class="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
+          <lucide-icon [name]="'package'" class="w-6 h-6"></lucide-icon>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng tiền sản phẩm</p>
+          <div class="flex items-baseline gap-1 mt-1">
+            <p class="text-2xl font-bold text-slate-900">{{ totalProductAmount | number:'1.0-0' }}</p>
+            <span class="text-sm font-bold text-slate-400">đ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chi tiêu -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+      <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-50 rounded-full group-hover:scale-110 transition-transform duration-500"></div>
+      <div class="relative flex items-center gap-4">
+        <div class="p-3 bg-rose-100 text-rose-600 rounded-2xl">
+          <lucide-icon [name]="'trending-down'" class="w-6 h-6"></lucide-icon>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng chi tiêu</p>
+          <div class="flex items-baseline gap-1 mt-1">
+            <p class="text-2xl font-bold text-slate-900">{{ totalExpenseAmount | number:'1.0-0' }}</p>
+            <span class="text-sm font-bold text-slate-400">đ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="border-b border-slate-200">
+    <nav class="flex gap-8">
+      <button (click)="onTabChange('revenue')" class="py-4 px-1 text-sm font-bold transition-all relative"
+        [class.text-primary-600]="activeTab === 'revenue'" [class.text-slate-500]="activeTab !== 'revenue'">
+        Lịch sử bán hàng
+        <div *ngIf="activeTab === 'revenue'"
+          class="absolute bottom-0 left-0 w-full h-0.5 bg-primary-600 rounded-full animate-in fade-in duration-300">
+        </div>
+      </button>
+      <button (click)="onTabChange('expense')" class="py-4 px-1 text-sm font-bold transition-all relative"
+        [class.text-primary-600]="activeTab === 'expense'" [class.text-slate-500]="activeTab !== 'expense'">
+        Danh sách chi tiêu
+        <div *ngIf="activeTab === 'expense'"
+          class="absolute bottom-0 left-0 w-full h-0.5 bg-primary-600 rounded-full animate-in fade-in duration-300">
+        </div>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Content Card -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-premium overflow-hidden">
+    <!-- Revenue Table -->
+    <div *ngIf="activeTab === 'revenue'" class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+            <th class="px-8 py-5">Ngày</th>
+            <th class="px-6 py-5">Khách hàng</th>
+            <th class="px-6 py-5">Nội dung</th>
+            <th class="px-6 py-5 text-right">Tổng tiền</th>
+            <th class="px-6 py-5 text-right">Đã trả</th>
+            <th class="px-8 py-5">Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr *ngFor="let t of transactions" class="hover:bg-slate-50/80 transition-colors">
+            <td class="px-8 py-4 text-sm text-slate-500 tabular-nums">{{ t.date | date:'dd/MM/yyyy' }}</td>
+            <td class="px-6 py-4 font-bold text-slate-900">{{ t.customerName }}</td>
+            <td class="px-6 py-4">
+              <div class="flex flex-col">
+                <span class="text-sm font-medium text-slate-700">{{ t.itemName }}</span>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{{ t.type }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-right font-bold text-slate-900">{{ t.totalAmount | number:'1.0-0' }}đ</td>
+            <td class="px-6 py-4 text-right">
+              <span class="font-bold tabular-nums text-emerald-600">{{ t.paidAmount | number:'1.0-0' }}đ</span>
+              <p *ngIf="t.debt > 0" class="text-[10px] text-rose-500 font-bold">Nợ: {{ t.debt | number:'1.0-0' }}đ</p>
+            </td>
+            <td class="px-8 py-4">
+              <span [ngClass]="{
+                'bg-emerald-100 text-emerald-700': t.status === 'Completed',
+                'bg-amber-100 text-amber-700': t.status === 'Pending'
+              }" class="px-2.5 py-1 rounded-full text-[10px] font-bold">
+                {{ t.status === 'Completed' ? 'Hoàn tất' : 'Còn nợ' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Expense Table -->
+    <div *ngIf="activeTab === 'expense'" class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+            <th class="px-8 py-5">Ngày</th>
+            <th class="px-6 py-5">Nội dung chi tiêu</th>
+            <th class="px-8 py-5 text-right">Số tiền</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr *ngFor="let e of expenses" class="hover:bg-slate-50/80 transition-colors">
+            <td class="px-8 py-4 text-sm text-slate-500 tabular-nums">{{ e.date | date:'dd/MM/yyyy' }}</td>
+            <td class="px-6 py-4 font-bold text-slate-900">{{ e.content }}</td>
+            <td class="px-8 py-4 text-right font-bold text-rose-600 tabular-nums">-{{ e.amount | number:'1.0-0' }}đ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Sale Modal -->
+  <div *ngIf="showSaleModal"
+    class="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+    <div (click)="showSaleModal = false" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+      <div class="p-8">
+        <h2 class="text-2xl font-bold text-slate-900 mb-6">Tạo đơn hàng mới</h2>
+        <form [formGroup]="saleForm" (ngSubmit)="onSaleSubmit()" class="grid grid-cols-2 gap-6">
+          <div class="col-span-2 sm:col-span-1 space-y-2">
+            <label class="text-sm font-bold text-slate-700">Khách hàng</label>
+            <select (change)="onCustomerSelect($event)" formControlName="customerId"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500/20">
+              <option [value]="null">Khách lẻ (Không chọn)</option>
+              <option *ngFor="let c of customers" [value]="c.id">{{ c.fullName }}</option>
+            </select>
+          </div>
+          <div class="col-span-2 sm:col-span-1 space-y-2">
+            <label class="text-sm font-bold text-slate-700">Tên khách hiển thị *</label>
+            <input type="text" formControlName="customerName"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+          </div>
+
+          <div class="col-span-2 sm:col-span-1 space-y-2">
+            <label class="text-sm font-bold text-slate-700">Loại mặt hàng</label>
+            <div class="flex gap-4 p-1 bg-slate-100 rounded-xl">
+              <button type="button" (click)="onItemTypeChange('Service')"
+                class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                [class.bg-white]="saleForm.get('itemType')?.value === 'Service'"
+                [class.shadow-sm]="saleForm.get('itemType')?.value === 'Service'">Liệu trình</button>
+              <button type="button" (click)="onItemTypeChange('Product')"
+                class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                [class.bg-white]="saleForm.get('itemType')?.value === 'Product'"
+                [class.shadow-sm]="saleForm.get('itemType')?.value === 'Product'">Sản phẩm</button>
+            </div>
+            <!-- Hint Mua liệu trình -->
+            <div *ngIf="saleForm.get('itemType')?.value === 'Service'" class="mt-3">
+              <p class="text-xs text-slate-500 italic">* Hệ thống sẽ tự động tạo gói liệu trình (áp dụng giá trọn gói).
+                Bán dịch vụ buổi lẻ vui lòng qua tab Công việc.</p>
+            </div>
+          </div>
+          <div class="col-span-2 sm:col-span-1 space-y-2">
+            <label class="text-sm font-bold text-slate-700">Chọn mặt hàng *</label>
+            <select (change)="onItemSelect($event)" formControlName="itemId"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+              <ng-container *ngIf="saleForm.get('itemType')?.value === 'Service'">
+                <option *ngFor="let s of services" [value]="s.id">{{ s.name }}</option>
+              </ng-container>
+              <ng-container *ngIf="saleForm.get('itemType')?.value === 'Product'">
+                <option *ngFor="let p of products" [value]="p.id">{{ p.name }}</option>
+              </ng-container>
+            </select>
+          </div>
+
+          <div class="col-span-1 space-y-2">
+            <label class="text-sm font-bold text-slate-700">Tổng tiền</label>
+            <input type="text" [value]="formatCurrency(saleForm.get('totalAmount')?.value)" (input)="onAmountInput($event, 'totalAmount')"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-primary-600">
+          </div>
+          <div class="col-span-1 space-y-2">
+            <label class="text-sm font-bold text-slate-700">Thực thu</label>
+            <input type="text" [value]="formatCurrency(saleForm.get('paidAmount')?.value)" (input)="onAmountInput($event, 'paidAmount')"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-emerald-600">
+          </div>
+
+          <div class="col-span-2 pt-4 flex gap-3">
+            <button type="button" (click)="showSaleModal = false"
+              class="flex-1 px-6 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold">Hủy</button>
+            <button type="submit" [disabled]="saleForm.invalid || isSubmitting"
+              class="flex-1 px-6 py-3 bg-primary-600 text-white rounded-xl font-bold shadow-lg shadow-primary-500/30">
+              {{ isSubmitting ? 'Đang lưu...' : 'Tạo đơn hàng' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expense Modal -->
+  <div *ngIf="showExpenseModal"
+    class="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+    <div (click)="showExpenseModal = false" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden p-8">
+      <h2 class="text-xl font-bold mb-6 text-slate-900">Ghi nhận chi tiêu</h2>
+      <form [formGroup]="expenseForm" (ngSubmit)="onExpenseSubmit()" class="space-y-6">
+        <div class="space-y-2">
+          <label class="text-sm font-bold text-slate-700">Nội dung chi</label>
+          <input type="text" formControlName="content" placeholder="VD: Mua văn phòng phẩm"
+            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-bold text-slate-700">Số tiền chi</label>
+          <input type="number" formControlName="amount"
+            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-rose-600">
+        </div>
+        <div class="flex gap-3">
+          <button type="button" (click)="showExpenseModal = false"
+            class="flex-1 px-6 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold">Hủy</button>
+          <button type="submit" [disabled]="expenseForm.invalid || isSubmitting"
+            class="flex-1 px-6 py-3 bg-rose-500 text-white rounded-xl font-bold shadow-lg shadow-rose-500/30">Lưu chi
+            tiêu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

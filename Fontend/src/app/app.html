@@ -1,0 +1,15 @@
+<div class="flex h-screen bg-slate-50 font-interface overflow-hidden">
+  <!-- Sidebar -->
+  <app-sidebar *ngIf="!isLoginPage" [isOpen]="sidebarOpen()" (close)="sidebarOpen.set(false)"></app-sidebar>
+
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col min-w-0" [class.md:ml-64]="!isLoginPage">
+    <!-- Header -->
+    <app-header *ngIf="!isLoginPage" (toggleSidebar)="sidebarOpen.set(!sidebarOpen())"></app-header>
+
+    <!-- Page Content -->
+    <main class="flex-1 overflow-y-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

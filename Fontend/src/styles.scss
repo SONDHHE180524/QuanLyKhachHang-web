@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-mint: #4fd1c5;
+  /* Mint Green */
+  --secondary-teal: #38b2ac;
+  /* Teal */
+  --bg-fresh: #f0fdfa;
+  /* Super Light Mint */
+}
+
+body {
+  margin: 0;
+  font-family: 'Nunito', sans-serif;
+  background-color: var(--bg-fresh);
+  color: #2d3748;
+}
+
+@keyframes soft-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 3s infinite ease-in-out;
+}
+
+.shadow-mint {
+  box-shadow: 0 10px 30px -5px rgba(79, 209, 197, 0.15);
+}
+
+.glass-mint {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(79, 209, 197, 0.1);
+}

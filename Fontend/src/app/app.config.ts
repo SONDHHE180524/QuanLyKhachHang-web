@@ -1,0 +1,122 @@
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, importProvidersFrom, provideZonelessChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import {
+  LucideAngularModule,
+  LayoutDashboard,
+  ShoppingCart,
+  Users,
+  Package,
+  Settings,
+  LogOut,
+  ChevronRight,
+  TrendingUp,
+  Search,
+  Bell,
+  Plus,
+  User,
+  DollarSign,
+  CreditCard,
+  AlertCircle,
+  Sparkles,
+  CheckCircle2,
+  X,
+  ClipboardCheck,
+  Menu,
+  Wallet,
+  Calendar,
+  RefreshCw,
+  Eye,
+  EyeOff,
+  BadgeDollarSign,
+  Info,
+  Edit2,
+  Trash2,
+  Check,
+  Activity,
+  TrendingDown,
+  Heart,
+  PieChart,
+  BarChart3,
+  ClipboardList,
+  FileSpreadsheet,
+  Maximize,
+  Minimize,
+  UserCheck,
+  Layers,
+  ShoppingBag,
+  Camera,
+  Upload,
+  Save,
+  Lock,
+  Key
+} from 'lucide-angular';
+import { provideHttpClient } from '@angular/common/http';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZonelessChangeDetection(),
+    provideBrowserGlobalErrorListeners(),
+    provideRouter(routes),
+    provideHttpClient(),
+    provideAnimationsAsync(),
+    importProvidersFrom(
+      LucideAngularModule.pick({
+        LayoutDashboard,
+        ShoppingCart,
+        Users,
+        Package,
+        Settings,
+        LogOut,
+        ChevronRight,
+        TrendingUp,
+        Search,
+        Bell,
+        Plus,
+        User,
+        DollarSign,
+        CreditCard,
+        AlertCircle,
+        Sparkles,
+        CheckCircle2,
+        X,
+        ClipboardCheck,
+        Menu,
+        Wallet,
+        Calendar,
+        RefreshCw,
+        Eye,
+        EyeOff,
+        BadgeDollarSign,
+        Info,
+        Edit2,
+        Trash2,
+        Check,
+        Activity,
+        TrendingDown,
+        Heart,
+        PieChart,
+        BarChart3,
+        ClipboardList,
+        FileSpreadsheet,
+        Maximize,
+        Minimize,
+        UserCheck,
+        Layers,
+        ShoppingBag,
+        Camera,
+        Upload,
+        Save,
+        Lock,
+        Key
+      })
+    ),
+    provideCharts(withDefaultRegisterables())
+  ]
+};
+
+
+

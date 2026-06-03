@@ -1,0 +1,483 @@
+<div class="p-4 sm:p-8 space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Công việc hằng ngày</h1>
+      <p class="text-slate-500 mt-1">Ghi nhận toàn bộ hoạt động kinh doanh: Dịch vụ, Sản phẩm, Hoàn tiền và Nợ.</p>
+    </div>
+    <div class="text-right p-4 bg-white rounded-2xl border border-slate-100 shadow-sm flex flex-col items-end gap-1.5 min-w-[240px]">
+      <div class="flex items-center gap-2 justify-between w-full">
+        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Doanh thu</span>
+        <div class="flex p-0.5 bg-slate-100 rounded-lg gap-0.5 border border-slate-200/50">
+          <button type="button" (click)="setRevenuePeriod('today')" 
+            [ngClass]="revenuePeriod === 'today' ? 'bg-primary-600 text-white shadow-sm font-black' : 'text-slate-500 hover:text-slate-700 font-bold'" 
+            class="px-2 py-0.5 text-[8px] uppercase rounded transition-all">Hôm nay</button>
+          <button type="button" (click)="setRevenuePeriod('month')" 
+            [ngClass]="revenuePeriod === 'month' ? 'bg-primary-600 text-white shadow-sm font-black' : 'text-slate-500 hover:text-slate-700 font-bold'" 
+            class="px-2 py-0.5 text-[8px] uppercase rounded transition-all">Tháng này</button>
+          <button type="button" (click)="setRevenuePeriod('year')" 
+            [ngClass]="revenuePeriod === 'year' ? 'bg-primary-600 text-white shadow-sm font-black' : 'text-slate-500 hover:text-slate-700 font-bold'" 
+            class="px-2 py-0.5 text-[8px] uppercase rounded transition-all">Năm nay</button>
+        </div>
+      </div>
+      <p class="text-2xl font-black text-primary-600">{{ periodRevenue | number:'1.0-0' }}đ</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Left Column: Unified Recording Form -->
+    <div class="lg:col-span-4">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-premium overflow-hidden">
+        <!-- Mode Switcher: Refined Grid Style -->
+        <div class="p-4 bg-slate-50/50 border-b border-slate-100">
+          <div class="grid grid-cols-3 gap-2 p-1 bg-slate-200/50 rounded-2xl">
+            <button (click)="formMode = 'service'" 
+              [class]="formMode === 'service' ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
+              class="py-2.5 rounded-xl text-[11px] font-black uppercase tracking-tighter transition-all flex flex-col items-center gap-1">
+              <lucide-icon name="user-check" [size]="16"></lucide-icon>
+              <span>Dịch vụ</span>
+            </button>
+            <button (click)="formMode = 'package'" 
+              [class]="formMode === 'package' ? 'bg-white text-amber-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
+              class="py-2.5 rounded-xl text-[11px] font-black uppercase tracking-tighter transition-all flex flex-col items-center gap-1">
+              <lucide-icon name="layers" [size]="16"></lucide-icon>
+              <span>Liệu trình</span>
+            </button>
+            <button (click)="formMode = 'product'" 
+              [class]="formMode === 'product' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
+              class="py-2.5 rounded-xl text-[11px] font-black uppercase tracking-tighter transition-all flex flex-col items-center gap-1">
+              <lucide-icon name="shopping-bag" [size]="16"></lucide-icon>
+              <span>Sản phẩm</span>
+            </button>
+          </div>
+        </div>
+
+        <form [formGroup]="checkInForm" (ngSubmit)="onSubmit()" class="p-6 pt-2 space-y-5">
+          <!-- Select Customer -->
+          <div class="space-y-2">
+            <label class="text-sm font-bold text-slate-700">Khách hàng</label>
+            <select formControlName="customerId" (change)="onCustomerSelect($event)"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:ring-2 focus:ring-primary-500/20">
+              <option [value]="null" disabled selected>-- Chọn khách hàng --</option>
+              <option [value]="0" class="font-bold text-primary-600">Khách lẻ (Vãng lai)</option>
+              <option *ngFor="let c of customers" [value]="c.id">{{ c.fullName }} - {{ c.phoneNumber }}</option>
+            </select>
+          </div>
+
+          <!-- Guest Name (Service Mode Only) -->
+          <div *ngIf="isGuest" class="space-y-2 animate-in slide-in-from-top-2 duration-300">
+            <label class="text-sm font-bold text-slate-700">Tên khách lẻ *</label>
+            <input type="text" formControlName="guestName" placeholder="Nhập tên khách..."
+              class="w-full px-4 py-3 bg-white border-2 border-primary-100 rounded-xl text-sm text-slate-900 focus:border-primary-500">
+          </div>
+
+          <!-- SERVICE MODE FIELDS -->
+          <ng-container *ngIf="formMode === 'service'">
+            <!-- Treatment Info -->
+            <div *ngIf="customerHasTreatment" class="p-4 bg-primary-50 border border-primary-100 rounded-xl space-y-2">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-[10px] font-bold text-primary-600 uppercase tracking-wider">Đang theo liệu trình</span>
+                  <p class="text-sm font-bold text-slate-900 mt-1">{{ currentTreatmentName }}</p>
+                </div>
+                <span class="px-2.5 py-1 bg-white rounded-full text-xs font-bold text-primary-700 shadow-sm">
+                  {{ currentTreatmentProgress }}
+                </span>
+              </div>
+              <div class="pt-2 border-t border-primary-100/50 mt-2 space-y-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" formControlName="isTreatment" class="w-4 h-4 rounded text-primary-600">
+                  <span class="text-sm font-bold text-slate-700">Làm theo gói liệu trình</span>
+                </label>
+                <label *ngIf="checkInForm.get('isTreatment')?.value" class="flex items-center gap-2 cursor-pointer animate-in fade-in slide-in-from-left-2">
+                  <input type="checkbox" formControlName="isFreeSession" class="w-4 h-4 rounded text-emerald-600">
+                  <span class="text-[11px] font-black text-emerald-600 uppercase tracking-wider">Tặng 1 buổi free (Không trừ buổi)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Retail Service Selection -->
+            <div class="space-y-2" *ngIf="!checkInForm.get('isTreatment')?.value">
+              <label class="text-sm font-bold text-slate-700">Dịch vụ thực hiện</label>
+              <select formControlName="serviceId" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                <option [value]="null" disabled selected>-- Chọn dịch vụ --</option>
+                <option *ngFor="let s of services" [value]="s.id">{{ s.name }} ({{ s.priceSingle | number:'1.0-0' }}đ)</option>
+              </select>
+            </div>
+
+            <!-- Body Regions -->
+            <div class="space-y-3">
+              <label class="text-sm font-bold text-slate-700">Vùng thực hiện</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" *ngFor="let region of bodyRegions" (click)="toggleRegion(region)"
+                  [class]="selectedRegions.includes(region) ? 'px-3 py-2 bg-primary-500 text-white rounded-xl text-xs font-bold' : 'px-3 py-2 bg-slate-50 text-slate-600 rounded-xl text-xs font-bold border border-slate-200 hover:border-primary-200'">
+                  {{ region }}
+                </button>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- PACKAGE MODE FIELDS -->
+          <ng-container *ngIf="formMode === 'package'">
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700">Chọn gói liệu trình</label>
+              <select formControlName="packageId" (change)="onPackageSelect($event)" 
+                class="w-full px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm">
+                <option [value]="null" disabled selected>-- Chọn gói liệu trình --</option>
+                <option *ngFor="let s of services" [value]="s.id">{{ s.name }} (Gói {{ s.pricePackage | number:'1.0-0' }}đ)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Giá gói</label>
+                <input type="text" [value]="formatCurrency(checkInForm.get('totalAmount')?.value)" (input)="onAmountInput($event, 'totalAmount')"
+                  class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900">
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Khách trả</label>
+                <input type="text" [value]="formatCurrency(checkInForm.get('paidAmount')?.value)" (input)="onAmountInput($event, 'paidAmount')"
+                  class="w-full px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm font-bold text-emerald-700">
+              </div>
+            </div>
+
+            <div *ngIf="checkInForm.get('debt')?.value > 0" class="p-3 bg-rose-50 border border-rose-100 rounded-xl flex justify-between items-center">
+              <span class="text-xs font-bold text-rose-600">GHI NỢ:</span>
+              <span class="text-sm font-black text-rose-700">{{ checkInForm.get('debt')?.value | number:'1.0-0' }}đ</span>
+            </div>
+          </ng-container>
+
+          <!-- PRODUCT MODE FIELDS -->
+          <ng-container *ngIf="formMode === 'product'">
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700">Sản phẩm bán</label>
+              <select formControlName="productId" (change)="onProductSelect($event)" 
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                <option [value]="null" disabled selected>-- Chọn sản phẩm --</option>
+                <option *ngFor="let p of products" [value]="p.id">{{ p.name }} ({{ p.price | number:'1.0-0' }}đ)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Tổng tiền</label>
+                <input type="text" [value]="formatCurrency(checkInForm.get('totalAmount')?.value)" (input)="onAmountInput($event, 'totalAmount')"
+                  class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900">
+              </div>
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Khách trả</label>
+                <input type="text" [value]="formatCurrency(checkInForm.get('paidAmount')?.value)" (input)="onAmountInput($event, 'paidAmount')"
+                  class="w-full px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm font-bold text-emerald-700">
+              </div>
+            </div>
+
+            <div *ngIf="checkInForm.get('debt')?.value > 0" class="p-3 bg-rose-50 border border-rose-100 rounded-xl flex justify-between items-center">
+              <span class="text-xs font-bold text-rose-600">GHI NỢ:</span>
+              <span class="text-sm font-black text-rose-700">{{ checkInForm.get('debt')?.value | number:'1.0-0' }}đ</span>
+            </div>
+          </ng-container>
+
+          <!-- COMMON FIELDS (Payment & Notes) -->
+          <div class="space-y-4 pt-2">
+            <!-- Payment Method -->
+            <div *ngIf="formMode !== 'service' || !checkInForm.get('isTreatment')?.value" class="space-y-2">
+              <label class="text-sm font-bold text-slate-700">Hình thức thanh toán</label>
+              <div class="flex gap-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" formControlName="paymentMethod" value="Tiền mặt" class="w-4 h-4 text-primary-600">
+                  <span class="text-sm font-bold text-slate-700">Tiền mặt</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" formControlName="paymentMethod" value="Chuyển khoản" class="w-4 h-4 text-primary-600">
+                  <span class="text-sm font-bold text-slate-700">Chuyển khoản</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Consultant Selection -->
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700">NV</label>
+              <div class="flex flex-col gap-2">
+                <select formControlName="consultantType" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:ring-2 focus:ring-primary-500/20">
+                  <option value="PA" class="font-bold">PA ❤️</option>
+                  <option value="Other">Khác (Tự điền)</option>
+                  <option value="None">Không có</option>
+                </select>
+                <input *ngIf="checkInForm.get('consultantType')?.value === 'Other'" 
+                       type="text" formControlName="otherConsultantName" 
+                       placeholder="Nhập tên người tư vấn..."
+                       class="w-full px-4 py-3 bg-white border-2 border-primary-100 rounded-xl text-sm focus:border-primary-500 animate-in slide-in-from-top-2">
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-sm font-bold text-slate-700">Ghi chú hằng ngày</label>
+              <textarea formControlName="notes" rows="2" placeholder="Nhập ghi chú thêm..."
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500/20"></textarea>
+            </div>
+
+            <!-- Date Override -->
+            <div class="space-y-3">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" formControlName="useCustomDate" class="w-4 h-4 rounded text-primary-600">
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Ghi nhận theo ngày khác</span>
+              </label>
+              <div *ngIf="checkInForm.get('useCustomDate')?.value" class="animate-in fade-in slide-in-from-top-2 duration-300">
+                <input type="datetime-local" formControlName="customDate" [max]="maxDate"
+                  class="w-full px-4 py-3 bg-white border-2 border-primary-100 rounded-xl text-sm focus:border-primary-500">
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" [disabled]="checkInForm.invalid || isSubmitting"
+            [class]="formMode === 'service' ? 'bg-primary-600 hover:bg-primary-700 shadow-primary-500/30' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/30'"
+            class="w-full px-6 py-4 text-white rounded-2xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2">
+            <lucide-icon [name]="isSubmitting ? 'refresh-cw' : 'check-circle-2'" [class.animate-spin]="isSubmitting" class="w-5 h-5"></lucide-icon>
+            {{ isSubmitting ? 'Đang lưu...' : (formMode === 'service' ? 'Xác nhận dịch vụ' : 'Xác nhận bán hàng') }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Unified Activity Feed -->
+    <div [ngClass]="isFullscreen ? 'fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm p-4 sm:p-8 overflow-y-auto animate-in zoom-in-95 duration-300' : 'lg:col-span-8 space-y-6'">
+      <!-- Unified Timeline Card -->
+      <div class="bg-white border border-slate-200 shadow-premium overflow-hidden"
+           [ngClass]="isFullscreen ? 'rounded-[32px] min-h-[calc(100vh-4rem)] flex flex-col shadow-2xl' : 'rounded-3xl'">
+        <div class="p-4 sm:p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/50">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full md:w-auto">
+            <h2 class="text-lg font-bold text-slate-900">Nhật ký hoạt động</h2>
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex p-0.5 bg-slate-200 rounded-lg gap-1">
+                 <button (click)="setFilter('today')" [ngClass]="filterType === 'today' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1 text-[10px] font-black uppercase rounded-md transition-all">Hôm nay</button>
+                 <button (click)="setFilter('month')" [ngClass]="filterType === 'month' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1 text-[10px] font-black uppercase rounded-md transition-all">Tháng này</button>
+              </div>
+              
+              <!-- Custom Date Range Filter -->
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Từ</span>
+                <input type="date" [ngModel]="startDate" (ngModelChange)="onStartDateChange($event)"
+                  [ngClass]="filterType === 'custom-range' ? 'bg-primary-50 text-primary-700 border-primary-200 shadow-sm font-bold' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
+                  class="px-2 py-1 text-[10px] uppercase rounded-lg border outline-none cursor-pointer transition-all h-[24px] w-[105px] sm:w-[120px]">
+                
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider">đến</span>
+                <input type="date" [ngModel]="endDate" (ngModelChange)="onEndDateChange($event)"
+                  [ngClass]="filterType === 'custom-range' ? 'bg-primary-50 text-primary-700 border-primary-200 shadow-sm font-bold' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'"
+                  class="px-2 py-1 text-[10px] uppercase rounded-lg border outline-none cursor-pointer transition-all h-[24px] w-[105px] sm:w-[120px]">
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full md:w-auto">
+            <button (click)="toggleFullscreen()" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 bg-slate-100 text-slate-600 rounded-2xl text-xs font-black hover:bg-slate-200 hover:text-slate-900 transition-all active:scale-95" [title]="isFullscreen ? 'Thu nhỏ' : 'Phóng to toàn màn hình'">
+              <lucide-icon [name]="isFullscreen ? 'minimize' : 'maximize'" [size]="18"></lucide-icon>
+              <span class="hidden sm:inline">{{ isFullscreen ? 'THU NHỎ' : 'VIEW' }}</span>
+            </button>
+            <button (click)="openPayDebtModal()" class="flex items-center justify-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 bg-rose-600 text-white rounded-2xl text-xs font-black shadow-xl shadow-rose-500/20 hover:bg-rose-700 transition-all active:scale-95">
+              <lucide-icon name="wallet" [size]="18"></lucide-icon>
+              <span class="hidden sm:inline">THANH TOÁN NỢ</span>
+            </button>
+            <button (click)="exportExcel()" class="flex items-center justify-center gap-2 px-3 sm:px-6 py-2.5 sm:py-3 bg-emerald-600 text-white rounded-2xl text-xs font-black shadow-xl shadow-emerald-500/20 hover:bg-emerald-700 transition-all active:scale-95">
+              <lucide-icon name="file-spreadsheet" [size]="18"></lucide-icon>
+              <span class="hidden sm:inline">XUẤT BÁO CÁO</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto" [class.flex-1]="isFullscreen">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                <th class="px-4 py-4 whitespace-nowrap">Thời gian</th>
+                <th class="px-4 py-4 whitespace-nowrap">Khách hàng</th>
+                <th class="px-4 py-4 whitespace-nowrap">Nội dung</th>
+                <th class="px-4 py-4 whitespace-nowrap">Phân loại</th>
+                <th class="px-8 py-4 whitespace-nowrap text-center min-w-[150px]">NV</th>
+                <th class="px-4 py-4 whitespace-nowrap text-right">Tiền thu</th>
+                <th class="px-4 py-4 whitespace-nowrap">Thanh toán</th>
+                <th class="px-4 py-4 whitespace-nowrap text-right">Nợ</th>
+                <th class="px-4 py-4 whitespace-nowrap text-center">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr *ngFor="let item of unifiedLogs" class="hover:bg-slate-50/80 transition-all group">
+                <td class="px-4 py-5 whitespace-nowrap">
+                  <div class="text-xs font-black text-slate-900 tabular-nums">{{ item.date | date:'dd/MM/yyyy' }}</div>
+                </td>
+                <td class="px-4 py-4 font-black text-sm text-slate-900">
+                  {{ item.customerName }}
+                </td>
+                <td class="px-4 py-4 font-bold text-slate-700 text-sm">{{ item.itemName }}</td>
+                <td class="px-4 py-4">
+                  <span [ngClass]="{
+                    'bg-primary-100 text-primary-700': item.type === 'Liệu trình',
+                    'bg-indigo-100 text-indigo-700': item.type === 'Buổi lẻ',
+                    'bg-emerald-100 text-emerald-700': item.type === 'Sản phẩm',
+                    'bg-rose-100 text-rose-700': item.type === 'Hoàn tiền',
+                    'bg-teal-100 text-teal-700': item.type === 'Thu nợ',
+                    'bg-amber-100 text-amber-700': item.type === 'Mua gói'
+                  }" class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider whitespace-nowrap">
+                    {{ item.type === 'Mua gói' ? 'Liệu trình' : item.type }}
+                  </span>
+                </td>
+                <td class="px-8 py-4 text-center min-w-[150px] whitespace-nowrap">
+                  <span *ngIf="item.isConsultedByPA || item.consultantName === 'PA'" class="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-black tracking-widest border border-slate-200 uppercase">
+                    PA
+                  </span>
+                  <span *ngIf="!item.isConsultedByPA && item.consultantName && item.consultantName !== 'PA'" class="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-bold border border-slate-200">
+                    {{ item.consultantName }}
+                  </span>
+                  <span *ngIf="!item.isConsultedByPA && (!item.consultantName || item.consultantName === '')" class="text-slate-300 text-xs">-</span>
+                </td>
+                <td class="px-4 py-4 text-right font-black text-slate-900 tabular-nums whitespace-nowrap">
+                  {{ item.revenue > 0 ? (item.revenue | number:'1.0-0') + 'đ' : '-' }}
+                </td>
+                <td class="px-4 py-4">
+                  <div class="flex flex-col gap-1" *ngIf="item.paymentMethod !== '-'">
+                    <!-- Show payment method if they paid something -->
+                    <span *ngIf="item.revenue > 0" class="px-2 py-0.5 border border-slate-200 rounded text-[10px] font-bold text-slate-500 whitespace-nowrap inline-block w-fit">
+                      {{ item.paymentMethod }}
+                    </span>
+                    <!-- Show debt label ONLY if no advance payment was made -->
+                    <span *ngIf="item.debtAmount > 0 && item.revenue <= 0" class="text-[10px] font-black text-rose-600 uppercase tracking-widest bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100 w-fit">
+                      Nợ
+                    </span>
+                  </div>
+                  <span *ngIf="item.paymentMethod === '-'" class="text-slate-300">-</span>
+                </td>
+                <td class="px-4 py-4 text-right whitespace-nowrap">
+                  <span *ngIf="item.debtAmount > 0" class="text-sm font-black text-rose-600 tabular-nums">
+                    {{ item.debtAmount | number:'1.0-0' }}đ
+                  </span>
+                  <span *ngIf="!(item.debtAmount > 0)" class="text-slate-200">-</span>
+                </td>
+                <td class="px-4 py-4">
+                  <div class="flex items-center justify-center">
+                    <button *ngIf="item.notes" (click)="viewNote(item.notes)" class="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all" title="Xem ghi chú">
+                      <lucide-icon name="eye" [size]="18"></lucide-icon>
+                    </button>
+                    <span *ngIf="!item.notes" class="text-slate-200">-</span>
+                  </div>
+                </td>
+              </tr>
+              <!-- Empty State -->
+              <tr *ngIf="unifiedLogs.length === 0">
+                <td colspan="8" class="px-6 py-20 text-center">
+                  <div class="flex flex-col items-center opacity-20">
+                    <lucide-icon name="clipboard-list" class="w-12 h-12 mb-2"></lucide-icon>
+                    <p class="text-sm font-bold">Không có hoạt động nào trong ngày</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pay Debt Modal -->
+  <div *ngIf="showPayDebtModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+    <div class="bg-white rounded-[32px] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+      <div class="p-8">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Thanh toán nợ</h2>
+            <p class="text-slate-500 text-sm mt-1">Chọn khách hàng và số tiền cần thu.</p>
+          </div>
+          <button (click)="showPayDebtModal = false" class="p-2 hover:bg-slate-100 rounded-full transition-colors">
+            <lucide-icon name="x" class="w-6 h-6 text-slate-400"></lucide-icon>
+          </button>
+        </div>
+
+        <div class="space-y-6">
+          <div class="space-y-2">
+            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Khách đang nợ</label>
+            <select [(ngModel)]="selectedDebtCustomer" (change)="onDebtCustomerSelect()"
+              class="w-full px-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 outline-none focus:border-rose-500 transition-all">
+              <option [ngValue]="null">-- Chọn khách hàng cần thu nợ --</option>
+              <option *ngFor="let d of debtList" [ngValue]="d">{{ d.customerName }} (Còn nợ: {{ d.totalDebt | number:'1.0-0' }}đ)</option>
+            </select>
+          </div>
+
+          <div *ngIf="selectedDebtCustomer" class="p-6 bg-rose-50 border border-rose-100 rounded-3xl animate-in slide-in-from-top-4">
+            <div class="flex justify-between items-center mb-4">
+              <span class="text-xs font-bold text-rose-600 uppercase">Tổng nợ hiện tại</span>
+              <span class="text-xl font-black text-rose-700">{{ selectedDebtCustomer.totalDebt | number:'1.0-0' }}đ</span>
+            </div>
+            
+            <div class="space-y-2">
+              <label class="text-[11px] font-black text-rose-400 uppercase tracking-widest">Số tiền thu lần này</label>
+              <div class="relative">
+                <input type="number" [(ngModel)]="payDebtAmount"
+                  class="w-full px-4 py-4 bg-white border-2 border-rose-200 rounded-2xl text-xl font-black text-slate-900 outline-none focus:border-rose-500 transition-all tabular-nums">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">VNĐ</span>
+              </div>
+            </div>
+
+            <div class="space-y-2 mt-4">
+              <label class="text-[11px] font-black text-rose-400 uppercase tracking-widest">Hình thức thanh toán</label>
+              <div class="grid grid-cols-2 gap-4">
+                <button type="button" (click)="payDebtMethod = 'Tiền mặt'"
+                  [ngClass]="payDebtMethod === 'Tiền mặt' ? 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-500/10' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
+                  class="py-3 px-4 rounded-xl border font-bold text-xs transition-all text-center">
+                  Tiền mặt
+                </button>
+                <button type="button" (click)="payDebtMethod = 'Chuyển khoản'"
+                  [ngClass]="payDebtMethod === 'Chuyển khoản' ? 'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-500/10' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'"
+                  class="py-3 px-4 rounded-xl border font-bold text-xs transition-all text-center">
+                  Chuyển khoản
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-2 mt-4">
+              <label class="text-[11px] font-black text-rose-400 uppercase tracking-widest">Ghi chú thu nợ</label>
+              <textarea [(ngModel)]="payDebtNotes" rows="2" placeholder="Nhập ghi chú thu nợ..."
+                class="w-full px-4 py-3 bg-white border border-rose-100 rounded-2xl text-xs font-bold text-slate-900 outline-none focus:border-rose-500 transition-all resize-none"></textarea>
+            </div>
+          </div>
+
+          <button (click)="confirmPayDebt()" [disabled]="!selectedDebtCustomer || payDebtAmount <= 0"
+            class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-sm shadow-xl shadow-slate-900/20 transition-all hover:bg-slate-800 active:scale-[0.98] disabled:opacity-30 disabled:pointer-events-none">
+            XÁC NHẬN THU TIỀN
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div *ngIf="toastMessage" 
+    class="fixed bottom-8 right-8 z-[200] flex items-center gap-4 px-6 py-4 rounded-2xl shadow-2xl border animate-in slide-in-from-right-8 fade-in duration-300"
+    [ngClass]="toastType === 'success' ? 'bg-white border-emerald-100' : 'bg-white border-rose-100'">
+    <div [ngClass]="toastType === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'" class="p-2.5 rounded-xl">
+      <lucide-icon [name]="toastType === 'success' ? 'check-circle-2' : 'alert-circle'" class="w-5 h-5"></lucide-icon>
+    </div>
+    <div>
+      <h4 class="font-bold text-slate-900 text-sm">Thông báo</h4>
+      <p class="text-sm text-slate-500">{{ toastMessage }}</p>
+    </div>
+  </div>
+
+  <!-- View Note Modal -->
+  <div *ngIf="showNoteModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+    <div class="bg-white rounded-[32px] w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+      <div class="p-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-black text-slate-900 tracking-tight">Ghi chú</h2>
+          <button (click)="showNoteModal = false" class="p-2 hover:bg-slate-100 rounded-full transition-colors">
+            <lucide-icon name="x" class="w-5 h-5 text-slate-400"></lucide-icon>
+          </button>
+        </div>
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+          <p class="text-sm font-medium text-slate-700 whitespace-pre-wrap">{{ currentNoteContent }}</p>
+        </div>
+        <div class="mt-8">
+          <button (click)="showNoteModal = false" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-sm shadow-xl shadow-slate-900/20 transition-all hover:bg-slate-800 active:scale-[0.98]">
+            ĐÓNG
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

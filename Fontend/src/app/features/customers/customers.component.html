@@ -1,0 +1,386 @@
+<div class="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+  <!-- Header Section -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Quản lý khách hàng</h1>
+      <p class="text-slate-500 mt-1">Quản lý thông tin khách hàng và theo dõi tiến độ liệu trình.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button (click)="toggleAddModal()"
+        class="flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-primary-500/30 transition-all hover:-translate-y-0.5">
+        <lucide-icon [name]="'plus'" class="w-4 h-4"></lucide-icon>
+        Thêm khách hàng
+      </button>
+    </div>
+  </div>
+
+  <!-- Customer Table Card -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-premium overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr
+            class="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase tracking-wider border-b border-slate-100">
+            <th class="px-8 py-5">Họ và tên</th>
+            <th class="px-6 py-5">Số điện thoại</th>
+            <th class="px-6 py-5">Địa chỉ</th>
+            <th class="px-6 py-5">Tiến độ liệu trình</th>
+            <th class="px-6 py-5">Ngày tham gia</th>
+            <th class="px-8 py-5 text-right font-medium">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr *ngFor="let customer of filteredCustomers" class="group hover:bg-slate-50/80 transition-all duration-200">
+            <td class="px-8 py-4">
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm">
+                  {{ customer.fullName.charAt(0) }}
+                </div>
+                <div class="font-bold text-slate-900">{{ customer.fullName }}</div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span class="text-sm text-slate-600 tabular-nums">{{ customer.phoneNumber || '--' }}</span>
+            </td>
+            <td class="px-6 py-4">
+              <span class="text-sm text-slate-500 truncate max-w-[200px] block" [title]="customer.address">{{
+                customer.address || '--' }}</span>
+            </td>
+            <td class="px-6 py-4">
+              <!-- Có liệu trình -->
+              <div *ngIf="hasTreatment(customer.treatmentProgress)" class="flex flex-col gap-1.5 min-w-[120px]">
+                <div class="flex justify-between items-center">
+                  <span class="text-[10px] font-bold text-primary-700 uppercase tracking-wider">Đã làm: {{
+                    customer.treatmentProgress }}</span>
+                  <span class="text-[10px] font-bold text-primary-500">{{
+                    getTreatmentPercentage(customer.treatmentProgress) }}%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                  <div class="bg-primary-500 h-full transition-all duration-1000"
+                    [style.width]="getTreatmentPercentage(customer.treatmentProgress) + '%'"></div>
+                </div>
+              </div>
+
+              <!-- Không có liệu trình -->
+              <div *ngIf="!hasTreatment(customer.treatmentProgress)" class="flex items-center gap-2">
+                <span
+                  class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded-md text-[10px] font-bold uppercase tracking-wider">Không
+                  sử dụng liệu trình</span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <span class="text-sm text-slate-400">{{ customer.createdAt | date:'dd/MM/yyyy' }}</span>
+            </td>
+            <td class="px-8 py-4 text-right">
+              <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button (click)="viewCustomerHistory(customer.id)"
+                  class="p-2 text-primary-500 hover:bg-primary-50 rounded-lg transition-colors" title="Xem lịch sử khách hàng">
+                  <lucide-icon [name]="'eye'" class="w-4 h-4"></lucide-icon>
+                </button>
+                <button *ngIf="hasTreatment(customer.treatmentProgress) && getTreatmentPercentage(customer.treatmentProgress) < 100"
+                  (click)="startRefund(customer.id)"
+                  class="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Dừng liệu trình & Tính tiền">
+                  <lucide-icon [name]="'refresh-cw'" class="w-4 h-4"></lucide-icon>
+                </button>
+                <button *ngIf="getTreatmentPercentage(customer.treatmentProgress) === 100"
+                  (click)="finishTreatment(customer.id)"
+                  class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Kết thúc liệu trình">
+                  <lucide-icon [name]="'check-circle-2'" class="w-4 h-4"></lucide-icon>
+                </button>
+                <button (click)="editCustomer(customer)"
+                  class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                  title="Sửa thông tin">
+                  <lucide-icon [name]="'settings'" class="w-4 h-4"></lucide-icon>
+                </button>
+                <button (click)="deleteCustomer(customer.id)"
+                  class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                  title="Xóa khách hàng">
+                  <lucide-icon [name]="'log-out'" class="w-4 h-4"></lucide-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <!-- Empty State -->
+          <tr *ngIf="filteredCustomers.length === 0">
+            <td colspan="6" class="px-8 py-20 text-center">
+              <div class="flex flex-col items-center gap-3">
+                <div class="p-4 bg-slate-50 rounded-full text-slate-300">
+                  <lucide-icon [name]="'users'" class="w-12 h-12"></lucide-icon>
+                </div>
+                <h3 class="text-slate-900 font-bold">Không tìm thấy khách hàng nào</h3>
+                <p class="text-slate-400 text-sm max-w-xs">Thử thay đổi từ khóa tìm kiếm hoặc thêm mới khách hàng vào hệ
+                  thống.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add Customer Modal -->
+  <div *ngIf="showAddModal"
+    class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+    <!-- Backdrop -->
+    <div (click)="toggleAddModal()" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+
+    <!-- Modal Content -->
+    <div
+      class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+      <div class="p-8">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900">{{ selectedCustomer ? 'Cập nhật khách hàng' : 'Thêm khách
+              hàng' }}</h2>
+            <p class="text-slate-500 text-sm mt-1">{{ selectedCustomer ? 'Chỉnh sửa thông tin khách hàng hiện tại.' :
+              'Nhập thông tin cơ bản cho khách hàng mới.' }}</p>
+          </div>
+          <button (click)="toggleAddModal()"
+            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+            <lucide-icon [name]="'chevron-right'" class="w-6 h-6 rotate-45"></lucide-icon>
+          </button>
+        </div>
+
+        <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <div class="space-y-2">
+            <label class="text-sm font-bold text-slate-700 ml-1">Họ và tên *</label>
+            <input type="text" formControlName="fullName" placeholder="VD: Nguyễn Văn A"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+              [class.border-rose-500]="customerForm.get('fullName')?.invalid && customerForm.get('fullName')?.touched" />
+            <p *ngIf="customerForm.get('fullName')?.invalid && customerForm.get('fullName')?.touched"
+              class="text-xs text-rose-500 ml-1">Vui lòng nhập họ tên đầy đủ.</p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-sm font-bold text-slate-700 ml-1">Số điện thoại</label>
+            <input type="tel" formControlName="phoneNumber" placeholder="VD: 0987xxxxxx"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all" />
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-sm font-bold text-slate-700 ml-1">Địa chỉ</label>
+            <textarea formControlName="address" placeholder="Nhập địa chỉ..." rows="3"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all resize-none"></textarea>
+          </div>
+
+          <div class="pt-4 flex gap-3">
+            <button type="button" (click)="toggleAddModal()"
+              class="flex-1 px-6 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors">
+              Hủy bỏ
+            </button>
+            <button type="submit" [disabled]="customerForm.invalid || isSubmitting"
+              class="flex-1 px-6 py-3 bg-primary-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-primary-500/30 hover:bg-primary-700 transition-all disabled:opacity-50 disabled:shadow-none">
+              {{ isSubmitting ? 'Đang lưu...' : (selectedCustomer ? 'Cập nhật' : 'Lưu thông tin') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div *ngIf="toastMessage"
+    class="fixed bottom-6 right-6 z-[200] flex items-center gap-4 px-6 py-4 rounded-2xl shadow-2xl border animate-in slide-in-from-right-8 fade-in duration-300 transition-all"
+    [ngClass]="toastType === 'success' ? 'bg-white border-emerald-100' : 'bg-white border-rose-100'">
+    <div [ngClass]="toastType === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'"
+      class="p-2.5 rounded-xl">
+      <lucide-icon [name]="toastType === 'success' ? 'check-circle-2' : 'alert-circle'" class="w-5 h-5"></lucide-icon>
+    </div>
+    <div class="pr-6">
+      <h4 class="font-bold text-slate-900 text-sm">{{ toastType === 'success' ? 'Thành công' : 'Có lỗi xảy ra' }}</h4>
+      <p class="text-sm text-slate-500 mt-0.5">{{ toastMessage }}</p>
+    </div>
+    <button (click)="toastMessage = null"
+      class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+      <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+    </button>
+  </div>
+
+  <!-- Refund Modal -->
+  <div *ngIf="showRefundModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-in fade-in duration-300">
+    <div (click)="showRefundModal = false" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <div class="p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="p-3 bg-rose-50 rounded-xl text-rose-600">
+            <lucide-icon [name]="'refresh-cw'" class="w-6 h-6"></lucide-icon>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900">Dừng liệu trình</h2>
+            <p class="text-sm text-slate-500">Tính toán tiền hoàn trả cho khách hàng</p>
+          </div>
+        </div>
+
+        <div class="space-y-4 mb-8">
+          <div class="flex justify-between p-3 bg-slate-50 rounded-xl">
+            <span class="text-slate-500">Khách hàng:</span>
+            <span class="font-bold text-slate-900">{{ refundCalc?.customerName }}</span>
+          </div>
+          <div class="flex justify-between p-3 bg-slate-50 rounded-xl">
+            <span class="text-slate-500">Liệu trình:</span>
+            <span class="font-bold text-slate-900">{{ refundCalc?.serviceName }}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-primary-50 rounded-2xl border border-primary-100">
+              <p class="text-xs text-primary-600 font-bold uppercase mb-1">Đã làm</p>
+              <p class="text-xl font-bold text-primary-700">{{ refundCalc?.sessionsDone }}/{{ refundCalc?.totalSessions }} buổi</p>
+            </div>
+            <div class="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+              <p class="text-xs text-amber-600 font-bold uppercase mb-1">Giá lẻ 1 buổi</p>
+              <p class="text-xl font-bold text-amber-700">{{ refundCalc?.singlePrice | number:'1.0-0' }}đ</p>
+            </div>
+          </div>
+
+          <!-- Phương thức tính -->
+          <div class="space-y-3">
+            <label class="text-xs font-bold text-slate-500 uppercase">Cách tính phí đã dùng</label>
+            <div class="grid grid-cols-2 gap-3">
+              <div (click)="refundType = 'single'" 
+                [class.border-primary-500]="refundType === 'single'"
+                [class.bg-primary-50]="refundType === 'single'"
+                class="cursor-pointer p-3 border-2 border-slate-100 rounded-2xl transition-all hover:border-primary-200 group">
+                <div class="flex items-center gap-2">
+                  <div class="w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center"
+                    [class.border-primary-500]="refundType === 'single'">
+                    <div *ngIf="refundType === 'single'" class="w-2 h-2 rounded-full bg-primary-500"></div>
+                  </div>
+                  <span class="text-sm font-bold text-slate-700">Theo giá lẻ</span>
+                </div>
+              </div>
+              <div (click)="refundType = 'package'" 
+                [class.border-primary-500]="refundType === 'package'"
+                [class.bg-primary-50]="refundType === 'package'"
+                class="cursor-pointer p-3 border-2 border-slate-100 rounded-2xl transition-all hover:border-primary-200 group">
+                <div class="flex items-center gap-2">
+                  <div class="w-4 h-4 rounded-full border-2 border-slate-300 flex items-center justify-center"
+                    [class.border-primary-500]="refundType === 'package'">
+                    <div *ngIf="refundType === 'package'" class="w-2 h-2 rounded-full bg-primary-500"></div>
+                  </div>
+                  <span class="text-sm font-bold text-slate-700">Theo liệu trình</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-500">Khách đã trả (Gói):</span>
+              <span class="font-bold">{{ refundCalc?.paidAmount | number:'1.0-0' }}đ</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-500">Chi phí đã dùng ({{ refundCalc?.sessionsDone }} buổi):</span>
+              <span class="font-bold text-rose-600">-{{ calculatedUsedCost | number:'1.0-0' }}đ</span>
+            </div>
+            <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
+              <span class="font-bold text-slate-900">TIỀN HOÀN LẠI:</span>
+              <span class="text-2xl font-black text-emerald-600">{{ calculatedRefundAmount | number:'1.0-0' }}đ</span>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-slate-500 uppercase">Ghi chú</label>
+            <textarea [(ngModel)]="refundNotes" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-primary-500/10 outline-none transition-all" rows="2"></textarea>
+          </div>
+        </div>
+
+        <div class="flex gap-3">
+          <button (click)="showRefundModal = false" class="flex-1 px-6 py-3 border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors">
+            Hủy
+          </button>
+          <button (click)="confirmRefund()" [disabled]="isProcessingRefund" class="flex-1 px-6 py-3 bg-rose-600 text-white rounded-xl font-bold shadow-lg shadow-rose-500/30 hover:bg-rose-700 transition-all">
+            {{ isProcessingRefund ? 'Đang xử lý...' : 'Xác nhận dừng' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div *ngIf="showHistoryModal" class="fixed inset-0 z-[120] flex items-center justify-center p-4 animate-in fade-in duration-300">
+    <div (click)="showHistoryModal = false" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <div class="p-8">
+        <div class="flex items-center justify-between mb-8">
+          <div class="flex items-center gap-3">
+            <div class="p-3 bg-primary-50 rounded-xl text-primary-600">
+              <lucide-icon [name]="'history'" class="w-6 h-6"></lucide-icon>
+            </div>
+            <div>
+              <h2 class="text-2xl font-bold text-slate-900">Lịch sử khách hàng</h2>
+              <p class="text-sm text-slate-500">{{ historyCustomerName }}</p>
+            </div>
+          </div>
+          <button (click)="showHistoryModal = false" class="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+            <lucide-icon name="x" class="w-6 h-6"></lucide-icon>
+          </button>
+        </div>
+
+        <div class="max-h-[60vh] overflow-y-auto pr-2 space-y-6">
+          <!-- Loading State -->
+          <div *ngIf="isLoadingHistory" class="flex flex-col items-center py-12 text-slate-400">
+            <lucide-icon name="refresh-cw" class="w-8 h-8 animate-spin mb-3"></lucide-icon>
+            <p class="text-sm">Đang tải lịch sử...</p>
+          </div>
+
+          <!-- History Timeline -->
+          <div *ngIf="!isLoadingHistory && combinedHistory.length > 0" class="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-slate-200 before:via-slate-200 before:to-transparent">
+            <div *ngFor="let item of combinedHistory" class="relative flex items-start gap-6 pl-12">
+              <!-- Dot -->
+              <div class="absolute left-0 w-10 h-10 rounded-full border-4 border-white flex items-center justify-center z-10 shadow-sm"
+                [ngClass]="{
+                  'bg-primary-500': item.color === 'primary',
+                  'bg-emerald-500': item.color === 'emerald',
+                  'bg-rose-500': item.color === 'rose',
+                  'bg-indigo-500': item.color === 'indigo'
+                }">
+                <lucide-icon [name]="item.type === 'Financial' ? 'credit-card' : 'activity'" class="w-4 h-4 text-white"></lucide-icon>
+              </div>
+
+              <!-- Content Card -->
+              <div class="flex-1 bg-slate-50 rounded-2xl p-4 border border-slate-100 hover:border-slate-200 transition-colors">
+                <div class="flex justify-between items-start mb-1">
+                  <span class="text-[10px] font-black uppercase tracking-widest"
+                    [ngClass]="{
+                      'text-primary-600': item.color === 'primary',
+                      'text-emerald-600': item.color === 'emerald',
+                      'text-rose-600': item.color === 'rose',
+                      'text-indigo-600': item.color === 'indigo'
+                    }">{{ item.label }}</span>
+                  <span class="text-[10px] text-slate-400 font-bold tabular-nums">{{ item.date | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <h4 class="font-bold text-slate-900">{{ item.itemName }}</h4>
+                <div *ngIf="item.amount > 0" class="mt-2 flex items-center justify-between">
+                  <div class="text-sm font-bold text-slate-700">
+                    Thanh toán: <span [ngClass]="item.type === 'Financial' && item.label === 'Hoàn tiền' ? 'text-rose-600' : 'text-emerald-600'">{{ item.amount | number:'1.0-0' }}đ</span>
+                  </div>
+                  <div class="flex flex-col items-end gap-1">
+                    <span *ngIf="item.debtAmount > 0" class="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded text-[10px] font-black uppercase tracking-widest">
+                      Nợ
+                    </span>
+                    <span *ngIf="!(item.debtAmount > 0) && item.paymentMethod && item.paymentMethod !== '-'" class="px-2 py-0.5 bg-white border border-slate-200 rounded text-[10px] font-bold text-slate-500 whitespace-nowrap">
+                      {{ item.paymentMethod }}
+                    </span>
+                  </div>
+                </div>
+                <p *ngIf="item.notes" class="mt-2 text-xs text-slate-500 italic">"{{ item.notes }}"</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!isLoadingHistory && combinedHistory.length === 0" class="flex flex-col items-center py-20 text-slate-300">
+            <lucide-icon name="clipboard-list" class="w-12 h-12 mb-3 opacity-20"></lucide-icon>
+            <p class="text-sm font-bold">Chưa có lịch sử hoạt động</p>
+          </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+          <button (click)="showHistoryModal = false" class="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-slate-900/20">
+            Đóng cửa sổ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
